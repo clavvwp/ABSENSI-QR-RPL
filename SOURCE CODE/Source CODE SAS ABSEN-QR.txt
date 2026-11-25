@@ -2,6 +2,14 @@ Source CODE SAS ABSEN-QR
 
 
 UNTUK MEMBUAT FILE MIGRATION, MODEL DAN CONTROLER, (MANDIRI ya udah gede)
+____________________________________________________________________________
+
+SCRIPT LIBRARY QR CODE SCANNER (scan.blade.php):
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+
+____________________________________________________________________________
 
 MIGRATION :
 
