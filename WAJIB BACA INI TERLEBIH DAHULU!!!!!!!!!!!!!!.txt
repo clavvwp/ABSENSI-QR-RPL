@@ -1,0 +1,13 @@
+WAJIB BACA INI TERLEBIH DAHULU
+
+Nama Folder : absensi-qr-nama
+
+LANGKAH LANGKAH PENGERJAAN : 
+
+1. MEMBUAT PROJEK COMPOSER BARU MULAI DARI AWAL (BUAT SENDIRI UNTUK MENGANTISIPASI AGAR TIDAK ERROR!!!)
+2. SILAHKAN COPAS SOURCE CODE YANG BERADA PADA NOTEPAD
+3. KALIAN MENGERJAKAN DIFOLDER "KERJAIN DISINI" yang sudah disediakan!
+4. SILAHKAN MENGERJAKAN DENGAN KETENTUAN :
+	- Mengisi code mandiri pada file yang kosong / melengkapi code
+	- membuat system scan sendiri (Controller, View, Routes)
+	- memperbaiki kesalahan kode bila ada

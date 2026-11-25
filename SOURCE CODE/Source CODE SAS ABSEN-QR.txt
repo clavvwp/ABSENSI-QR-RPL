@@ -1,0 +1,229 @@
+Source CODE SAS ABSEN-QR
+
+
+UNTUK MEMBUAT FILE MIGRATION, MODEL DAN CONTROLER, (MANDIRI ya udah gede)
+
+MIGRATION :
+
+    public function up(): void
+{
+    Schema::create('students',  function (Blueprint $table) {
+        $table->id();
+        $table->string('kode')->unique();
+        $table->string('nama')
+        $table->string('kelas');
+        $table->timestamps();
+    })
+}
+
+____________________________________________________________________________
+
+
+   public function up(): void
+{
+    Schema::create('attendances', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('student_id')->constrained()->cascadeOnDelete();
+        $table->date('tanggal'.);
+        $table->time('jam');
+        $table->timestamps();
+    });
+}
+
+
+================================================================================
+
+MODEL :
+
+
+  protected $fillable = ['kode', 'nama', 'kelas'];
+______________________________________________________ 
+
+  protected $fillable = ['student_id', 'tanggal', 'jam'];
+
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+
+================================================================================
+
+
+
+CONTROLER :
+
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Attendance;
+use App\Models\Student;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+class AbsensiController extends Controller
+{
+    public function siswa()
+    {
+        $students = Student::orderBy('nama')->get();
+
+        return view('siswa', compact('students'));
+    }
+
+    public function simpanSiswa(Request $request)
+    {
+        $data = $request->validate([
+            'nama' => 'required',
+            'kelas' => 'required',
+        ]);
+
+        $data['kode'] = 'SISWA-' . strtoupper(Str::random(6));
+
+        Student::create($data);
+
+        return back();
+    }
+
+    public function hapusSiswa(Student $student)
+    {
+        $student->delete();
+
+        return back();
+    }
+
+
+    public function rekap()
+    {
+        $absen = Attendance::with('student')
+            ->where('tanggal', now()->toDateString())
+            ->orderBy('jam')
+            ->get();
+
+        return view('rekap', compact('absen'));
+    }
+}
+
+
+================================================================================
+
+
+VIEW :
+
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Absensi QR</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+        nav a { margin-right: 15px; font-weight: bold; }
+        table { border-collapse: collapse; width: 100%; }
+        td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        input { padding: 6px; margin: 4px; }
+        button { padding: 6px 12px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Absensi QR</h1>
+    <nav>
+        <a href="/siswa">Data Siswa</a>
+        <a href="/scan">Scan Absen</a>
+        <a href="/rekap">Rekap Hari Ini</a>
+    </nav>
+    <hr>
+    @yield('isi')
+</body>
+</html>
+____________________________________________________________________________________________________
+
+@extends('layout')
+
+@section('isi')
+<h2>Rekap Absen Hari Ini</h2>
+<p>Total hadir: <b>{{ $absen->count() }}</b> siswa</p>
+
+<table>
+    <tr>
+        <th>No</th>
+        <th>Nama</th>
+        <th>Kelas</th>
+        <th>Jam</th>
+    </tr>
+    @foreach ($absen as $a)
+    <tr>
+        <td>{{ $loop->iteration }}</td>
+        <td>{{ $a->student->nama }}</td>
+        <td>{{ $a->student->kelas }}</td>
+        <td>{{ $a->jam }}</td>
+    </tr>
+    @endforeach
+</table>
+@endsection
+
+_____________________________________________________________________________________________________
+
+@extends('layout')
+
+@section('isi')
+<h2>Data Siswa</h2>
+
+<form method="POST" action="/siswa">
+    @csrf
+    <input name="nama" placeholder="Nama" required>
+    <input name="kelas" placeholder="Kelas" required>
+    <button>Tambah</button>
+</form>
+<br>
+
+<table>
+    <tr>
+        <th>Nama</th>
+        <th>Kelas</th>
+        <th>QR Code</th>
+        <th>Aksi</th>
+    </tr>
+    @foreach ($students as $s)
+    <tr>
+        <td>{{ $s->nama }}</td>
+        <td>{{ $s->kelas }}</td>
+        <td><div class="qr" data-kode="{{ $s->kode }}"></div></td>
+        <td>
+            <form method="POST" action="/siswa/{{ $s->id }}">
+                @csrf
+                @method('DELETE')
+                <button>Hapus</button>
+            </form>
+        </td>
+    </tr>
+    @endforeach
+</table>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    document.querySelectorAll('.qr').forEach(function (el) {
+        new QRCode(el, { text: el.dataset.kode, width: 100, height: 100 });
+    });
+</script>
+@endsection
+
+_________________________________________________________________________________________________
+
+ROUTE :
+
+
+<?php
+
+use App\Http\Controllers\AbsensiController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', fn () => redirect('/siswa'));
+
+Route::get('/siswa', [AbsensiController::class, 'siswa']);
+Route::post('/siswa', [AbsensiController::class, 'simpanSiswa']);
+Route::delete('/siswa/{student}', [AbsensiController::class, 'hapusSiswa']);
+Route::get('/rekap', [AbsensiController::class, 'rekap']);
+
+
